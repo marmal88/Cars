@@ -2,38 +2,40 @@ import io
 import json
 import torch
 import base64
+import BytesIO
 from PIL import Image
-from fastapi import FastAPI
+import fastapi 
+from fastapi import FastAPI, File, UploadFile, HTTPException
+import torch
+import torchvision.models as models
+
+from src.config.load_config import read_yaml_file
+
+
+cfg = read_yaml_file()
 
 app = FastAPI(
     title="Cars Classification API",
     description="Returns 2 endpoints ping and infer",
 )
 
-
-@app.get("/ping")
+@app.get("/ping",  status_code=fastapi.status.HTTP_200_OK)
 async def root():
     return {"message": "PONG"}
 
-@app.post("/infer")
-async def root(json_file):
-
-    with open(json_file, "rb") as file:
-        raw = file.read()
-        data = json.loads(raw)
-        for v in data.values():
-            img = base64.b64decode(v)
-            img = Image.open(io.BytesIO(img))
-
-    model = torch.load("models/")
+@app.post("/infer",  status_code=fastapi.status.HTTP_200_OK)
+async def root(image: UploadFile = File()):
+    if not image:
+        raise HTTPException(status_code=fastapi.status.HTTP_400_BAD_REQUEST, detail="Image file not found")
     
+    image_file = await image.read()
+    image_data = BytesIO(image_file)
+    
+    model_path = "models/model.pth"
+    model = models.resnet101()
+    model.load_state_dict(torch.load(cfg.model_path, map_location=torch.device('cpu')))
+    model.eval()
 
+    classification = model(image_data)
 
-    year = pred.rsplit(' ',1)[-1]
-    # # realized one cannot naively state that the 2nd last word is the that some of the makes 
-    ls_makes = ['SUV', 'Sedan', 'Hatchback', 'Convertible', 'Coupe', 'Wagon', 'Van', 'Minivan']
-    make = pred.rsplit(' ',2)[-2] if x.rsplit(' ',2)[-2] in ls_makes else np.nan
-    model = " ".join(pred.rsplit(' ',2)[:-2])
-
-    key = 'class' and value = "Make, Model, Year”
-    return {f'class': "{make}, {model}, {year}"}
+    return {"class": classification}

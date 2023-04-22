@@ -1,0 +1,7 @@
+---
+training:
+  train_df_path: "data/annotations/train_df.csv"
+  custom_crop: True
+
+inference:
+  model_path: "models/"
