@@ -2,6 +2,10 @@
 training:
   train_df_path: "data/annotations/train_df.csv"
   custom_crop: True
+  model_name: "resnet152" # can only swap between resnet101 and resnet152
+  batch_size: 35
+  epochs: 80
 
 inference:
-  model_path: "models/"
+  run_inference: "True" # Needs to be changed to false when training, ensures that pretrained weights are not loaded during inference
+  model_path: "models/resnet152_84.22_crop.pth"
