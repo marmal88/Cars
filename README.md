@@ -5,7 +5,7 @@
   - [Table of Contents](#table-of-contents)
   - [1. Folder Structure](#1-folder-structure)
   - [2. Application Setup](#2-application-setup)
-  - [3. Explain the data pre-processing steps](#3-explain-the-data-pre-processing-steps)
+  - [3. Data pre-processing steps](#3-data-pre-processing-steps)
     - [3.1 Assumptions](#31-assumptions)
     - [3.2 Pre-processing steps](#32-pre-processing-steps)
     - [3.3 Configurations](#33-configurations)
@@ -14,9 +14,12 @@
 
 ---
 ## 1. Folder Structure
+
+The following shows the folder structure of the repository for this project:
+
 ```bash
 .
-├── Cars.ipynb                 # Artefact #1 (sample of training run, actual was done using .py files)
+├── Cars.ipynb                 # Artefact #1: Jupyter notebook for model training and evaluation (actual was done using .py files)
 ├── requirements.txt
 ├── README.MD
 ├── data
@@ -24,17 +27,17 @@
 │   └── car_ims      
 ├── docker                     
 │   ├── docker-compose.yml         
-│   └── inference.Dockerfile   # Artefact #3 Dockerfile
+│   └── inference.Dockerfile   # Artefact #3: Dockerfile to containerize API
 ├── runs                       # location of tensorboard run files
 ├── models                     # location of .pth files
 └── src              
     ├── api  
-    │   └── fastapi            # Artefact #2 fastapi endpoint
+    │   └── fastapi            # Artefact #2: Source code file(s) for API
     ├── config
-    │   ├── config.yml
-    │   └── load_config.py
-    ├── dataset.py
-    ├── model.py
+    │   ├── config.yml         # Artefact #2: Config file
+    │   └── load_config.py     # Artefact #2: .py to load config
+    ├── dataset.py             # Artefact #2: .py to initialize custom dataset
+    ├── model.py               # Artefact #2: .py to initialize model
     └── train.py
 ```
 ---
@@ -62,14 +65,14 @@ Application has been containerized using docker compose for ease of deployment.
 
 ---
 
-## 3. Explain the data pre-processing steps
+## 3. Data pre-processing steps
 
 ### 3.1 Assumptions 
 - Images are not flipped and in the correct orientation
 - Bounding boxes provided are all correct with no errors
 
 ### 3.2 Pre-processing steps
-- As there was a bounding box present for each image
+- As the bounding box data allowed for a closer crop of the target image
 - Created a toggle to allow for training of images either cropped to bounding box or not
   - Generally found that cropping the image allowed for better inference 
 
@@ -81,10 +84,10 @@ Application has been containerized using docker compose for ease of deployment.
 ---
 ## 4. Model Selection
 
-The model selected was a standard **resnet**.
+The model selected was a standard **resnet**, either with 101 or 152 layers
 
 Considerations for model selection
-- Able to be retrained within timeline (~1 day) with fairly accurate results  
+- Able to be retrained within timeline (<1 day) with fairly accurate results  
   - Already pretrained on imagenet
   - Performs well across various machine learning classification tasks
 - Reasonable model architecture 
@@ -96,7 +99,7 @@ Considerations for model selection
 ---
 ## 5. Training and Validation results 
 
-During the training and validation phases the model training loss, validation loss and validation accuracy were measured using tensorboard. 
+During the training and validation phases the model training loss, validation loss and validation accuracy were logged using tensorboard. 
 
 These outputs were logged using tensorboard. Tensorboard can be run through:
 ```bash
