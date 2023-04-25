@@ -32,6 +32,8 @@ custom_crop = cfg["training"]["custom_crop"]
 mean = [0.485, 0.456, 0.406]
 std = [0.229, 0.224, 0.225]
 transform = T.Compose([
+                T.RandomHorizontalFlip(p=0.5),
+                T.RandomGrayscale(p=0.1),
                 T.Resize([224,224]),
                 T.ToTensor(),
                 T.Normalize(mean=mean, std=std),
@@ -108,7 +110,7 @@ for e in range(epochs):
     writer.add_scalar("Loss/Val", valid_loss, e)
     writer.add_scalar("Acc/Val", valid_acc, e)
 
-    print(f'Epoch {e+1} | Validation Loss: {valid_loss:.4f} | Validation Accuracy: {valid_acc:.2f}%')
+    print(f'Epoch {e} | Validation Loss: {valid_loss:.4f} | Validation Accuracy: {valid_acc:.2f}%')
     
     # Save out the models only if its accuracy exceed config amount 
     # and does better than the highest accuracy so far
@@ -122,8 +124,8 @@ for e in range(epochs):
         else:
             name = f"{model_name}_{valid_acc:.2f}_nocrop"
         
-        MODEL_PATH = os.path.join(os.getcwd(), f"models/{name}.pth") 
-        torch.save(model.state_dict(), MODEL_PATH)
+        model_path = os.path.join(os.getcwd(), f"models/{name}.pth") 
+        torch.save(model.state_dict(), model_path)
     
         # Log out each layer of the model per epoch
         for name, weight in model.named_parameters():
@@ -131,3 +133,4 @@ for e in range(epochs):
             writer.add_histogram(f'{name}.grad',weight.grad, e)
 
 writer.close()
+

@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torchvision.models import resnet152, ResNet152_Weights, resnet101, ResNet101_Weights
+from torchvision.models import resnet50, ResNet50_Weights, resnet101, ResNet101_Weights
 
 from src.config.load_config import read_yaml_file
 
@@ -18,9 +18,9 @@ class ClassifierModel(nn.Module):
         if self.cfg["training"]["model_name"] == "resnet101":
             model_func = resnet101
             weight = ResNet101_Weights.IMAGENET1K_V2
-        elif self.cfg["training"]["model_name"] == "resnet152":
-            model_func = resnet152
-            weight = ResNet152_Weights.IMAGENET1K_V2
+        elif self.cfg["training"]["model_name"] == "resnet50":
+            model_func = resnet50
+            weight = ResNet50_Weights.IMAGENET1K_V2
         else:
             print(f"Model not found, please ensure model loaded in model.py file")
 
@@ -35,3 +35,4 @@ class ClassifierModel(nn.Module):
     def forward(self, x:torch.Tensor)-> torch.Tensor:
         x = self.model(x)
         return x
+
