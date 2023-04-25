@@ -11,6 +11,8 @@
     - [3.3 Configurations](#33-configurations)
   - [4. Model Selection](#4-model-selection)
   - [5. Training and Validation results](#5-training-and-validation-results)
+    - [5.1 Training and Validation Curves](#51-training-and-validation-curves)
+    - [5.2 Test set results](#52-test-set-results)
 
 ---
 ## 1. Folder Structure
@@ -20,11 +22,12 @@ The following shows the folder structure of the repository for this project:
 ```bash
 .
 ├── Cars.ipynb                 # Artefact #1: Jupyter notebook for model training and evaluation (actual was done using .py files)
+├── confusion_matrix.ipynb 
 ├── requirements.txt
 ├── README.MD
 ├── data
 │   ├── annotations  
-│   └── car_ims      
+│   └── car_ims                # This data folder has been removed to save space 
 ├── docker                     
 │   ├── docker-compose.yml         
 │   └── inference.Dockerfile   # Artefact #3: Dockerfile to containerize API
@@ -74,7 +77,7 @@ Application has been containerized using docker compose for ease of deployment.
 ### 3.2 Pre-processing steps
 - As the bounding box data allowed for a closer crop of the target image
 - Created a toggle to allow for training of images either cropped to bounding box or not
-  - Generally found that cropping the image allowed for better inference 
+  - Generally found that cropping the image did not improve the inference 
 
 ### 3.3 Configurations
 - Config file provided to allow for customization of the training.
@@ -84,21 +87,24 @@ Application has been containerized using docker compose for ease of deployment.
 ---
 ## 4. Model Selection
 
-The model selected was a standard **resnet**, either with 101 or 152 layers
+The model selected was a standard **resnet**. 
+Several different versions were tested either with 50 or 101 layers
 
 Considerations for model selection
-- Able to be retrained within timeline (<1 day) with fairly accurate results  
-  - Already pretrained on imagenet
-  - Performs well across various machine learning classification tasks
-- Reasonable model architecture 
-  - Model comes with different depth and weights
-    - Generally found that the larger model (ResNet152) was able to deliver better accuracy given same parameters
-  - Model has reasonable depth and size to be able to get baseline classification
-  - Model makes use of skip connections to allow gradients to flow directly accross network
+1. Able to be retrained within timeline (<1 day) with fairly accurate results  
+     - Already pretrained on imagenet
+     - Performs well across various machine learning classification tasks
+
+2. Reasonable model architecture 
+     - Model comes with different depth and weights
+    - Generally found that the larger model (ResNet101) was able to deliver better accuracy given same parameters
+     - Model has reasonable depth and size to be able to get baseline classification
+     - Model makes use of skip connections to allow gradients to flow directly accross network
 
 ---
 ## 5. Training and Validation results 
 
+### 5.1 Training and Validation Curves
 During the training and validation phases the model training loss, validation loss and validation accuracy were logged using tensorboard. 
 
 These outputs were logged using tensorboard. Tensorboard can be run through:
@@ -107,4 +113,10 @@ tensorboard --logdir=runs --port 6006
 ```
 Once running the port can be accessed at `localhost:6006`.
 
----
+### 5.2 Test set results
+
+To analyze the output on the test set, a Confusion Matrix was also generated:
+
+<img src="assets/resnet101_77.47_nocrop_conf_mat.png"
+     alt="Confusion Matrix"
+     style="float: left; margin-right: 10px;" />
