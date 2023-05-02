@@ -2,6 +2,7 @@ version: "3.3"
 
 services:
   fastapi-server:
+    container_name: fastapi-server
     build:
       context: ${PWD}
       dockerfile: docker/inference.Dockerfile
@@ -17,3 +18,44 @@ services:
         "--port",
         "4000"
       ]
+
+  redis:
+    container_name: redis-backend
+    image: redis:7-alpine
+
+  celery-worker:
+    container_name: celery-worker
+    image: celery-worker:0.1.0
+    build:
+      context: ${PWD}
+      dockerfile: docker/inference.Dockerfile
+    command: celery -A src.api.celery_worker worker --loglevel=info
+    volumes:
+      - .:/celery-worker
+    env_file:
+      - ../.env
+    # environment:
+    #   - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+    #   - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    depends_on:
+      - fastapi-server
+      - redis
+
+  flower:
+    container_name: celery-flower
+    image: celery-flower:0.1.0
+    build:
+      context: ${PWD}
+      dockerfile: docker/inference.Dockerfile
+    command: celery -A src.api.celery_worker flower --port=5555
+    ports:
+      - 5556:5555
+    env_file:
+      - ../.env
+    # environment:
+    #   - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+    #   - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    depends_on:
+      - fastapi-server
+      - redis
+      - celery-worker
