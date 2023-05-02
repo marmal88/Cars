@@ -1,14 +1,17 @@
-import io
 import torch
 import pandas as pd
 import io
+import cv2
 from PIL import Image
+import base64
 import fastapi 
 from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import JSONResponse
 import torch
 import torchvision.transforms as T
 from typing import Dict
 
+from src.api.celery_worker import celery_infer2, celery_ping2
 from src.config.load_config import read_yaml_file
 from src.model import ClassifierModel
 
@@ -41,7 +44,27 @@ async def root()->Dict:
     Returns:
         Dict: Response in JSON format
     """    
-    return {"message": "pong"}
+    return JSONResponse({"message": "pong"})
+
+@app.get("/ping2",  status_code=fastapi.status.HTTP_200_OK)
+async def root(name=False)->Dict:
+    message = celery_ping2.delay(name)
+
+    return JSONResponse({"message": message.get()})
+
+
+@app.post("/infer2",  status_code=fastapi.status.HTTP_200_OK)
+async def root(image: UploadFile = File())->Dict:
+    if not image:
+        raise HTTPException(status_code=fastapi.status.HTTP_400_BAD_REQUEST, detail="Image file not found")
+    
+    image_bytes = await image.read()
+    # _, buffer = cv2.imencode(".jpg", image_bytes)
+    image_base64 = base64.b64encode(image_bytes).decode("ascii")
+    classification = celery_infer2.delay(image_base64)
+
+    return JSONResponse({"class": classification.get()})
+
 
 @app.post("/infer",  status_code=fastapi.status.HTTP_200_OK)
 async def root(image: UploadFile = File())->Dict:
@@ -66,9 +89,9 @@ async def root(image: UploadFile = File())->Dict:
         T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
-    image_tensor = transform(Image.open(image_data)).unsqueeze(0)
+    image_tensor = transform(Image.open(image_data).convert('RGB')).unsqueeze(0)
     output = model(image_tensor)
     _, predicted = torch.max(output.detach(), 1)
     classification = class_names[predicted.item()]
 
-    return {"class": classification}
+    return JSONResponse({"class": classification})

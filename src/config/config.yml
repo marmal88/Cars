@@ -6,6 +6,7 @@ training:
   model_name: "resnet101" # [resnet101 and resnet50]
   batch_size: 35
   epochs: 50
+  save_above: 70
 
 inference:
   run_inference: "True" # Needs to be changed to false when training, ensures that pretrained weights are not loaded during inference
